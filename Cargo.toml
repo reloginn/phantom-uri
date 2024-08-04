@@ -1,0 +1,9 @@
+[package]
+name = "phantom-uri"
+version = "0.1.0-dev"
+edition = "2021"
+
+[dependencies]
+
+[dev-dependencies]
+criterion = "0.5.1"
