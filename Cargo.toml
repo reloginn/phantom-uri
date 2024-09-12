@@ -7,3 +7,7 @@ edition = "2021"
 
 [dev-dependencies]
 criterion = "0.5.1"
+
+[[bench]]
+name = "parse_uri"
+harness = false
