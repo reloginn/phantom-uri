@@ -27,13 +27,14 @@ impl<'lexer> Lexer<'lexer> {
         }
     }
     pub fn next_token(&mut self) -> Result<Option<Token>, Unexpected> {
+
         let start = self.position();
         match self.next() {
-            Some(ch) if ch.is_alphabetic() => {
-                let mut ident = String::with_capacity(24);
+            Some(ch) if ch.is_alphabetic() || ch.is_alphanumeric() => {
+                let mut ident = String::with_capacity(24); // TODO: optimize
                 ident.push(ch);
-                while let Some(next) = self.peek() {
-                    if next.is_alphabetic() || next.is_alphanumeric() || next == '.' {
+                while let Some(ch) = self.peek() {
+                    if ch.is_alphabetic() || ch.is_alphanumeric() || ch == '.' || ch == '-' {
                         ident.push(self.next().unwrap_or_default());
                     } else {
                         break;

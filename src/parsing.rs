@@ -25,7 +25,7 @@ impl UriParser {
         let query = self.parse_query()?;
         let fragment = self.parse_fragment()?;
 
-        if scheme.is_some() && authority.is_none() && !path.is_empty() && !path.starts_with('/') {
+        if scheme.is_some() && authority.is_none() {
             return Err(ParseUriError::SchemeWithoutAuthority);
         }
 
@@ -98,11 +98,11 @@ impl UriParser {
 
     fn parse_host(&mut self) -> Result<String, ParseUriError> {
         if let Some(Token {
-            kind: TokenKind::Ident(host),
+            kind: TokenKind::Ident(mut host),
             ..
         }) = self.tokens.pop_front()
         {
-            let host = host.to_ascii_lowercase();
+            host.make_ascii_lowercase();
             return if is_valid_host(&host) {
                 Ok(host)
             } else {

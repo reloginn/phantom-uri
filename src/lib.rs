@@ -59,7 +59,7 @@ impl std::str::FromStr for Uri {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut lexer = Lexer::new(s);
-        let mut tokens = Vec::new();
+        let mut tokens = Vec::with_capacity(s.len() / 2);
         while let Ok(Some(token)) = lexer.next_token() {
             tokens.push(token)
         }
