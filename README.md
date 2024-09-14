@@ -1,7 +1,16 @@
 # What is it?
 This is an implementation of the URI parser (RFC3986)
 # When is the stable version?
-At the moment the implementation has rather poor performance due to the large number of allocations and reallocations, and also the `normalize_path` function needed to normalize paths is not done in the implementation. My goals for the next commit are to improve performance to the maximum, I don't guarantee that I won't use `unsafe` but I will try to avoid it.
+Currently, the implementation is not fully compliant with RFC3986 and has no `normalize_path` implementation for the path.
+# Known bugs
+Using the test example from `Example`:
+```
+byte index 46 is out of bounds of `https://datatracker.ietf.org/doc/html/rfc3986`
+```
+The last component has an incorrect `length` and differs from the correct one by 1. That is, we have 46 instead of 45.
+The problem will be solved in future commits.
+
+Translated with DeepL.com (free version)
 # Example
 ```rust
 const URI: &str = "https://datatracker.ietf.org/doc/html/rfc3986";
