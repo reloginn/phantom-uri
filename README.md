@@ -9,8 +9,6 @@ byte index 46 is out of bounds of `https://datatracker.ietf.org/doc/html/rfc3986
 ```
 The last component has an incorrect `length` and differs from the correct one by 1. That is, we have 46 instead of 45.
 The problem will be solved in future commits.
-
-Translated with DeepL.com (free version)
 # Example
 ```rust
 const URI: &str = "https://datatracker.ietf.org/doc/html/rfc3986";
