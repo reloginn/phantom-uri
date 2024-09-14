@@ -34,7 +34,7 @@ impl UriParser {
         let query = self.parse_query()?;
         let fragment = self.parse_fragment()?;
 
-        if scheme.is_some() && authority.is_none() {
+        if scheme.is_some() && authority.is_none() && !path.is_empty() && !path.starts_with('/') {
             return Err(ParseUriError::SchemeWithoutAuthority);
         }
 
