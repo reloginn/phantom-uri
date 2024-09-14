@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 #[doc = include_str!("../README.md")]
 pub mod error;
 mod parsing;
@@ -94,7 +96,21 @@ impl std::str::FromStr for Uri {
     type Err = ParseUriError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut parser = UriParser::new(s)?;
+        let parser = UriParser::new(s)?;
         parser.parse()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn parse_rfc3986_uri() {
+        const URI: &str = "https://datatracker.ietf.org/doc/html/rfc3986?query=Some#fragment";
+        let uri = URI.parse::<super::Uri>().unwrap();
+        assert_eq!(uri.scheme(), Some("https"));
+        assert_eq!(uri.authority().unwrap().host(), "datatracker.ietf.org");
+        assert_eq!(uri.path(), "/doc/html/rfc3986");
+        assert_eq!(uri.query(), Some("query=Some"));
+        assert_eq!(uri.fragment(), Some("fragment"))
     }
 }

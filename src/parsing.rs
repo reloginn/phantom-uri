@@ -19,7 +19,7 @@ pub struct UriParser {
 impl UriParser {
     pub fn new(input: &str) -> Result<Self, Unexpected> {
         let mut input = input.to_owned();
-        input.make_ascii_lowercase();
+        normalize_path(&mut input); // TODO
         let tokens = Lexer::new(&input).tokenize()?;
         Ok(Self {
             input,
@@ -117,11 +117,11 @@ impl UriParser {
             let start = span.start();
             let length = span.length();
             let host = &self.input[start..start + length];
-            return if is_valid_host(&host) {
+            if is_valid_host(host) {
                 Ok(span)
             } else {
                 Err(ParseUriError::InvalidHostCharacters)
-            };
+            }
         } else {
             Err(ParseUriError::MissingHost)
         }
@@ -146,7 +146,7 @@ impl UriParser {
     }
 
     fn parse_path(&mut self) -> Span {
-        let mut path = Span::new(0, 1);
+        let mut path = Span::new(0, 0);
         let mut first_forward_slash = false;
         while let Some(token) = self.tokens.front() {
             match token.kind() {
@@ -167,11 +167,9 @@ impl UriParser {
 
     fn parse_query(&mut self) -> Result<Option<Span>, ParseUriError> {
         if self.peek_token(TokenKind::QuestionMark) {
-            let start = self
-                .tokens
-                .pop_front()
-                .map_or(0, |token| token.span().start());
-            let mut query = Span::new(start, 1);
+            self.tokens.pop_front();
+            let start = self.tokens.front().map_or(0, |token| token.span().start());
+            let mut query = Span::new(start, 0);
             while let Some(token) = self.tokens.front() {
                 if matches!(token.kind(), TokenKind::PoundSign) {
                     break;
@@ -236,6 +234,4 @@ fn is_valid_host(host: &str) -> bool {
         .all(|ch| ch.is_ascii_alphanumeric() || ch == '-' || ch == '.')
 }
 
-fn normalize_path(path: &mut String) {
-    todo!()
-}
+fn normalize_path(_path: &mut str) {}

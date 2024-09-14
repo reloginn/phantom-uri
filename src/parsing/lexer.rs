@@ -30,7 +30,12 @@ impl<'lexer> Lexer<'lexer> {
             Some(ch) if ch.is_alphabetic() || ch.is_alphanumeric() => {
                 let mut len = 1usize;
                 while let Some(ch) = self.peek() {
-                    if ch.is_alphabetic() || ch.is_alphanumeric() || ch == '.' || ch == '-' {
+                    if ch.is_alphabetic()
+                        || ch.is_alphanumeric()
+                        || ch == '.'
+                        || ch == '-'
+                        || ch == '='
+                    {
                         self.next();
                         len += 1
                     } else {
