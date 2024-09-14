@@ -1,4 +1,4 @@
-#[derive(PartialEq, Debug, Copy, Clone)]
+#[derive(PartialEq, Eq, Debug, Copy, Clone)]
 pub struct Span {
     start: usize,
     length: usize,
@@ -13,5 +13,11 @@ impl Span {
     }
     pub const fn length(&self) -> usize {
         self.length
+    }
+    pub fn add_to_length(&mut self, num: usize) {
+        self.length += num
+    }
+    pub fn set_start(&mut self, num: usize) {
+        self.start = num;
     }
 }

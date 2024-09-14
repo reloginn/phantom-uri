@@ -6,7 +6,7 @@ pub mod span;
 #[derive(PartialEq, Debug)]
 pub struct Token {
     pub kind: TokenKind,
-    span: Span,
+    pub span: Span,
 }
 
 impl Token {

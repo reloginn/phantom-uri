@@ -1,56 +1,92 @@
+#[doc = include_str!("../README.md")]
 pub mod error;
 mod parsing;
 
-use self::{error::ParseUriError, parsing::{UriParser, lexer::Lexer}};
+use self::{
+    error::ParseUriError,
+    parsing::{lexer::token::span::Span, UriParser},
+};
 
 /// See [Authority](https://datatracker.ietf.org/doc/html/rfc3986#section-3.2) for more details.
-#[derive(Clone, Debug, Eq, PartialEq, Default)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Authority {
-    userinfo: Option<String>,
-    host: String,
-    port: Option<u16>,
+    input: String,
+    userinfo: Option<Span>,
+    host: Span,
+    port: Option<Span>,
 }
 
 impl Authority {
     pub fn userinfo(&self) -> Option<&str> {
-        self.userinfo.as_deref()
+        self.userinfo.map(|span| {
+            let start = span.start();
+            let length = span.length();
+            &self.input[start..start + length]
+        })
     }
     pub fn host(&self) -> &str {
-        self.host.as_ref()
+        let span = self.host;
+        let start = span.start();
+        let length = span.length();
+        &self.input[start..start + length]
+    }
+    pub fn port_str(&self) -> Option<&str> {
+        self.port.map(|span| {
+            let start = span.start();
+            let length = span.length();
+            &self.input[start..start + length]
+        })
     }
     pub fn port(&self) -> Option<u16> {
-        self.port
+        self.port_str()
+            .map(|port| port.parse::<u16>().unwrap_or_default())
     }
 }
 
 /// See [RFC3986](https://datatracker.ietf.org/doc/html/rfc3986) for more details.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Uri {
-    scheme: Option<String>,
+    input: String,
+    scheme: Option<Span>,
     authority: Option<Authority>,
-    path: String,
-    query: Option<String>,
-    fragment: Option<String>,
+    path: Span,
+    query: Option<Span>,
+    fragment: Option<Span>,
 }
 
 impl Uri {
     pub fn scheme(&self) -> Option<&str> {
-        self.scheme.as_deref()
+        self.scheme.map(|span| {
+            let start = span.start();
+            let length = span.length();
+            &self.input[start..start.wrapping_add(length)]
+        })
     }
     pub fn authority(&self) -> Option<&Authority> {
         self.authority.as_ref()
     }
 
     pub fn path(&self) -> &str {
-        self.path.as_ref()
+        let span = self.path;
+        let start = span.start();
+        let length = span.length();
+        &self.input[start..start.wrapping_add(length)]
     }
 
     pub fn query(&self) -> Option<&str> {
-        self.query.as_deref()
+        self.query.map(|span| {
+            let start = span.start();
+            let length = span.length();
+            &self.input[start..start.wrapping_add(length)]
+        })
     }
 
     pub fn fragment(&self) -> Option<&str> {
-        self.fragment.as_deref()
+        self.fragment.map(|span| {
+            let start = span.start();
+            let length = span.length();
+            &self.input[start..start.wrapping_add(length)]
+        })
     }
 }
 
@@ -58,11 +94,7 @@ impl std::str::FromStr for Uri {
     type Err = ParseUriError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut lexer = Lexer::new(s);
-        let mut tokens = Vec::with_capacity(s.len() / 2);
-        while let Ok(Some(token)) = lexer.next_token() {
-            tokens.push(token)
-        }
-        UriParser::new(tokens).parse()
+        let mut parser = UriParser::new(s)?;
+        parser.parse()
     }
 }
