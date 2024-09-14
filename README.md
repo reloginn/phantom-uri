@@ -1,5 +1,5 @@
 # What is it?
-This is a fast **zero-dependency, #[forbid(unsafe_code)]** implementation of RFC3986 (URI)
+This is a **fast, zero-dependency, #[forbid(unsafe_code)]** implementation of RFC3986 (URI)
 # When is the stable version?
 Currently, the implementation is not fully compliant with RFC3986 and has no `normalize_path` implementation for the path.
 # Example
