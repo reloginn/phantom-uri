@@ -1,7 +1,7 @@
 > [!WARNING]  
 > The implementation may have bugs and other flaws, you can open `Issue` if you find any bug.
 # What is it?
-This is a **fast, zero-dependency, #[forbid(unsafe_code)]** implementation of RFC3986 (URI)
+This is a **fast, zero-dependency, #![forbid(unsafe_code)]** implementation of RFC3986 (URI)
 # Future plans
 Make a **zero-copy** parser and implement an optional path normalization feature.
 # Example
