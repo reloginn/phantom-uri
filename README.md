@@ -1,7 +1,9 @@
+> [!WARNING]  
+> The implementation may have bugs and other flaws, you can open `Issue` if you find any bug.
 # What is it?
 This is a **fast, zero-dependency, #[forbid(unsafe_code)]** implementation of RFC3986 (URI)
-# When is the stable version?
-Currently, the implementation is not fully compliant with RFC3986 and has no `normalize_path` implementation for the path.
+# Future plans
+Make a **zero-copy** parser and implement an optional path normalization feature.
 # Example
 ```rust
 const URI: &str = "https://datatracker.ietf.org/doc/html/rfc3986";
