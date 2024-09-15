@@ -9,6 +9,7 @@ use self::{
     parsing::{lexer::token::span::Span, UriParser},
 };
 
+// TODO: zero-copy `Authority`
 /// See [Authority](https://datatracker.ietf.org/doc/html/rfc3986#section-3.2) for more details.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Authority {
@@ -45,6 +46,7 @@ impl Authority {
     }
 }
 
+// TODO: zero-copy `Uri`
 /// See [RFC3986](https://datatracker.ietf.org/doc/html/rfc3986) for more details.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Uri {
@@ -58,13 +60,15 @@ pub struct Uri {
 
 impl Uri {
     pub fn scheme(&self) -> Option<&str> {
+        // TODO: make_ascii_lowercase
         self.scheme.map(|span| {
             let start = span.start();
             let length = span.length();
-            &self.input[start..start.wrapping_add(length)]
+            &self.input[start..start + length]
         })
     }
     pub fn authority(&self) -> Option<&Authority> {
+        // TODO: make_ascii_lowercase
         self.authority.as_ref()
     }
 
@@ -72,14 +76,14 @@ impl Uri {
         let span = self.path;
         let start = span.start();
         let length = span.length();
-        &self.input[start..start.wrapping_add(length)]
+        &self.input[start..start + length]
     }
 
     pub fn query(&self) -> Option<&str> {
         self.query.map(|span| {
             let start = span.start();
             let length = span.length();
-            &self.input[start..start.wrapping_add(length)]
+            &self.input[start..start + length]
         })
     }
 
@@ -87,7 +91,7 @@ impl Uri {
         self.fragment.map(|span| {
             let start = span.start();
             let length = span.length();
-            &self.input[start..start.wrapping_add(length)]
+            &self.input[start..start + length]
         })
     }
 }

@@ -1,9 +1,9 @@
 pub mod token;
 
+use token::{kind::TokenKind, span::Span, Token};
 use crate::error::Unexpected;
 use std::iter::Peekable;
 use std::str::Chars;
-use token::{kind::TokenKind, span::Span, Token};
 
 pub struct Lexer<'lexer> {
     peekable: Peekable<Chars<'lexer>>,

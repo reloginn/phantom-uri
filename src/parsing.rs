@@ -19,7 +19,6 @@ pub struct UriParser {
 impl UriParser {
     pub fn new(input: &str) -> Result<Self, Unexpected> {
         let mut input = input.to_owned();
-        normalize_path(&mut input); // TODO
         let tokens = Lexer::new(&input).tokenize()?;
         Ok(Self {
             input,
@@ -233,5 +232,3 @@ fn is_valid_host(host: &str) -> bool {
     host.chars()
         .all(|ch| ch.is_ascii_alphanumeric() || ch == '-' || ch == '.')
 }
-
-fn normalize_path(_path: &mut str) {}
