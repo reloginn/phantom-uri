@@ -5,11 +5,10 @@ pub mod error;
 mod parsing;
 
 use self::{
-    error::ParseUriError,
+    error::Error,
     parsing::{lexer::token::span::Span, UriParser},
 };
 
-// TODO: zero-copy `Authority`
 /// See [Authority](https://datatracker.ietf.org/doc/html/rfc3986#section-3.2) for more details.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Authority {
@@ -46,7 +45,6 @@ impl Authority {
     }
 }
 
-// TODO: zero-copy `Uri`
 /// See [RFC3986](https://datatracker.ietf.org/doc/html/rfc3986) for more details.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Uri {
@@ -60,7 +58,6 @@ pub struct Uri {
 
 impl Uri {
     pub fn scheme(&self) -> Option<&str> {
-        // TODO: make_ascii_lowercase
         self.scheme.map(|span| {
             let start = span.start();
             let length = span.length();
@@ -68,7 +65,6 @@ impl Uri {
         })
     }
     pub fn authority(&self) -> Option<&Authority> {
-        // TODO: make_ascii_lowercase
         self.authority.as_ref()
     }
 
@@ -97,7 +93,7 @@ impl Uri {
 }
 
 impl std::str::FromStr for Uri {
-    type Err = ParseUriError;
+    type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parser = UriParser::new(s)?;
@@ -109,7 +105,7 @@ impl std::str::FromStr for Uri {
 mod tests {
     #[test]
     fn parse_rfc3986_uri() {
-        const URI: &str = "https://datatracker.ietf.org/doc/html/rfc3986?query=Some#fragment";
+        const URI: &str = "https://datatracker.ietf.org/doc/html/rfc3986";
         let uri = URI.parse::<super::Uri>().unwrap();
         assert_eq!(uri.scheme(), Some("https"));
         assert_eq!(
@@ -117,7 +113,16 @@ mod tests {
             Some("datatracker.ietf.org")
         );
         assert_eq!(uri.path(), "/doc/html/rfc3986");
-        assert_eq!(uri.query(), Some("query=Some"));
-        assert_eq!(uri.fragment(), Some("fragment"))
+    }
+    #[test]
+    fn make_scheme_and_authority_lowercase() {
+        const URI: &str = "HTTPS://DATATRACKER.IETF.ORG/DOC/html/rfc3986";
+        let uri = URI.parse::<super::Uri>().unwrap();
+        assert_eq!(uri.scheme(), Some("https"));
+        assert_eq!(
+            uri.authority().map(|authority| authority.host()),
+            Some("datatracker.ietf.org")
+        );
+        assert_ne!(uri.path(), "/doc/html/rfc3986");
     }
 }

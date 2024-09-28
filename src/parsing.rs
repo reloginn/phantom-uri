@@ -1,10 +1,9 @@
 pub mod lexer;
 
-use crate::parsing::lexer::token::span::Span;
 use crate::{
-    error::{ParseUriError, Unexpected},
+    error::{Error, Unexpected},
     parsing::lexer::{
-        token::{kind::TokenKind, Token},
+        token::{kind::TokenKind, span::Span, Token},
         Lexer,
     },
     Authority, Uri,
@@ -18,7 +17,7 @@ pub struct UriParser {
 
 impl UriParser {
     pub fn new(input: &str) -> Result<Self, Unexpected> {
-        let mut input = input.to_owned();
+        let input = input.to_owned();
         let tokens = Lexer::new(&input).tokenize()?;
         Ok(Self {
             input,
@@ -26,7 +25,7 @@ impl UriParser {
         })
     }
 
-    pub fn parse(mut self) -> Result<Uri, ParseUriError> {
+    pub fn parse(mut self) -> Result<Uri, Error> {
         let scheme = self.parse_scheme()?;
         let authority = self.parse_authority()?;
         let path = self.parse_path();
@@ -34,7 +33,7 @@ impl UriParser {
         let fragment = self.parse_fragment()?;
 
         if scheme.is_some() && authority.is_none() && path.length() != 0 {
-            return Err(ParseUriError::SchemeWithoutAuthority);
+            return Err(Error::SchemeWithoutAuthority);
         }
 
         Ok(Uri {
@@ -47,7 +46,7 @@ impl UriParser {
         })
     }
 
-    fn parse_scheme(&mut self) -> Result<Option<Span>, ParseUriError> {
+    fn parse_scheme(&mut self) -> Result<Option<Span>, Error> {
         if let Some(Token {
             kind: TokenKind::Ident(span),
             ..
@@ -57,20 +56,20 @@ impl UriParser {
                 let span = span.to_owned();
                 let start = span.start();
                 let length = span.length();
-                let scheme = &self.input[start..start + length];
                 self.tokens.pop_front();
                 self.tokens.pop_front();
+                let scheme = &mut self.input[start..start + length];
                 return if is_valid_scheme(scheme) {
                     Ok(Some(span))
                 } else {
-                    Err(ParseUriError::InvalidSchemeCharacters)
+                    Err(Error::InvalidSchemeCharacters)
                 };
             }
         }
         Ok(None)
     }
 
-    fn parse_authority(&mut self) -> Result<Option<Authority>, ParseUriError> {
+    fn parse_authority(&mut self) -> Result<Option<Authority>, Error> {
         if self.peek_token(TokenKind::ForwardSlash) && self.peek_next_token(TokenKind::ForwardSlash)
         {
             self.tokens.pop_front();
@@ -81,7 +80,7 @@ impl UriParser {
             let port = self.parse_port()?;
 
             Ok(Some(Authority {
-                input: self.input.clone(),
+                input: self.input.to_owned(),
                 userinfo,
                 host,
                 port,
@@ -107,7 +106,7 @@ impl UriParser {
         None
     }
 
-    fn parse_host(&mut self) -> Result<Span, ParseUriError> {
+    fn parse_host(&mut self) -> Result<Span, Error> {
         if let Some(Token {
             kind: TokenKind::Ident(span),
             ..
@@ -115,18 +114,18 @@ impl UriParser {
         {
             let start = span.start();
             let length = span.length();
-            let host = &self.input[start..start + length];
+            let host = &mut self.input[start..start + length];
             if is_valid_host(host) {
                 Ok(span)
             } else {
-                Err(ParseUriError::InvalidHostCharacters)
+                Err(Error::InvalidHostCharacters)
             }
         } else {
-            Err(ParseUriError::MissingHost)
+            Err(Error::MissingHost)
         }
     }
 
-    fn parse_port(&mut self) -> Result<Option<Span>, ParseUriError> {
+    fn parse_port(&mut self) -> Result<Option<Span>, Error> {
         if self.peek_token(TokenKind::Colon) {
             self.tokens.pop_front();
             if let Some(Token {
@@ -164,7 +163,7 @@ impl UriParser {
         path
     }
 
-    fn parse_query(&mut self) -> Result<Option<Span>, ParseUriError> {
+    fn parse_query(&mut self) -> Result<Option<Span>, Error> {
         if self.peek_token(TokenKind::QuestionMark) {
             self.tokens.pop_front();
             let start = self.tokens.front().map_or(0, |token| token.span().start());
@@ -176,7 +175,7 @@ impl UriParser {
                 match token.kind() {
                     TokenKind::Ident(part) => query.add_to_length(part.length()),
                     other => {
-                        return Err(ParseUriError::UnexpectedToken(Unexpected::new(
+                        return Err(Error::UnexpectedToken(Unexpected::new(
                             other.to_owned(),
                             token.span().start(),
                         )))
@@ -190,7 +189,7 @@ impl UriParser {
         }
     }
 
-    fn parse_fragment(&mut self) -> Result<Option<Span>, ParseUriError> {
+    fn parse_fragment(&mut self) -> Result<Option<Span>, Error> {
         if self.peek_token(TokenKind::PoundSign) {
             self.tokens.pop_front();
             match self.tokens.pop_front() {
@@ -198,10 +197,9 @@ impl UriParser {
                     kind: TokenKind::Ident(span),
                     ..
                 }) => Ok(Some(span)),
-                Some(Token { kind, span }) => Err(ParseUriError::UnexpectedToken(Unexpected::new(
-                    kind,
-                    span.start(),
-                ))),
+                Some(Token { kind, span }) => {
+                    Err(Error::UnexpectedToken(Unexpected::new(kind, span.start())))
+                }
                 _ => Ok(None),
             }
         } else {
@@ -222,13 +220,15 @@ impl UriParser {
     }
 }
 
-fn is_valid_scheme(scheme: &str) -> bool {
+fn is_valid_scheme(scheme: &mut str) -> bool {
+    scheme.make_ascii_lowercase();
     scheme
         .chars()
         .all(|ch| ch.is_ascii_alphabetic() || ch == '+' || ch == '-' || ch == '.')
 }
 
-fn is_valid_host(host: &str) -> bool {
+fn is_valid_host(host: &mut str) -> bool {
+    host.make_ascii_lowercase();
     host.chars()
         .all(|ch| ch.is_ascii_alphanumeric() || ch == '-' || ch == '.')
 }

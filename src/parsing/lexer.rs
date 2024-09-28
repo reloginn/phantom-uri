@@ -1,9 +1,9 @@
 pub mod token;
 
-use token::{kind::TokenKind, span::Span, Token};
 use crate::error::Unexpected;
 use std::iter::Peekable;
 use std::str::Chars;
+use token::{kind::TokenKind, span::Span, Token};
 
 pub struct Lexer<'lexer> {
     peekable: Peekable<Chars<'lexer>>,
@@ -18,7 +18,7 @@ impl<'lexer> Lexer<'lexer> {
         }
     }
     pub fn tokenize(&mut self) -> Result<Vec<Token>, Unexpected> {
-        let mut tokens = Vec::with_capacity(24); // TODO: try to optimize
+        let mut tokens = Vec::with_capacity(24);
         while let Some(token) = self.next_token()? {
             tokens.push(token)
         }
