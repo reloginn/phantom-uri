@@ -18,7 +18,7 @@ impl<'lexer> Lexer<'lexer> {
         }
     }
     pub fn tokenize(&mut self) -> Result<Vec<Token>, Unexpected> {
-        let mut tokens = Vec::with_capacity(24); // TODO: try to optimize
+        let mut tokens = Vec::with_capacity(24);
         while let Some(token) = self.next_token()? {
             tokens.push(token)
         }

@@ -9,7 +9,6 @@ use self::{
     parsing::{lexer::token::span::Span, UriParser},
 };
 
-// TODO: zero-copy `Authority`
 /// See [Authority](https://datatracker.ietf.org/doc/html/rfc3986#section-3.2) for more details.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Authority {
@@ -46,7 +45,6 @@ impl Authority {
     }
 }
 
-// TODO: zero-copy `Uri`
 /// See [RFC3986](https://datatracker.ietf.org/doc/html/rfc3986) for more details.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Uri {
