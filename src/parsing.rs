@@ -54,11 +54,9 @@ impl UriParser {
         {
             if self.peek_next_token(TokenKind::Colon) {
                 let span = span.to_owned();
-                let start = span.start();
-                let length = span.length();
                 self.tokens.pop_front();
                 self.tokens.pop_front();
-                let scheme = &mut self.source[start..start + length];
+                let scheme = &mut self.source[span.start()..span.end()];
                 return if is_valid_scheme(scheme) {
                     Ok(Some(span))
                 } else {
@@ -110,9 +108,7 @@ impl UriParser {
             ..
         }) = self.tokens.pop_front()
         {
-            let start = span.start();
-            let length = span.length();
-            let host = &mut self.source[start..start + length];
+            let host = &mut self.source[span.start()..span.end()];
             if is_valid_host(host) {
                 Ok(span)
             } else {

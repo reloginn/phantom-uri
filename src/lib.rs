@@ -29,37 +29,16 @@ pub struct Uri {
 
 impl Uri {
     pub fn scheme(&self) -> Option<&str> {
-        self.scheme.map(|span| {
-            let start = span.start();
-            let length = span.length();
-            &self.source[start..start + length]
-        })
+        self.get_optional_slice(self.scheme)
     }
     pub fn userinfo(&self) -> Option<&str> {
-        self.map_authority(|authority| {
-            authority.userinfo.map(|span| {
-                let start = span.start();
-                let length = span.length();
-                &self.source[start..start + length]
-            })
-        })
+        self.map_authority(|authority| self.get_optional_slice(authority.userinfo))
     }
     pub fn host(&self) -> Option<&str> {
-        self.map_authority(|authority| {
-            let span = authority.host;
-            let start = span.start();
-            let length = span.length();
-            Some(&self.source[start..start + length])
-        })
+        self.map_authority(|authority| self.get_optional_slice(Some(authority.host)))
     }
     pub fn port_str(&self) -> Option<&str> {
-        self.map_authority(|authority| {
-            authority.port.map(|span| {
-                let start = span.start();
-                let length = span.length();
-                &self.source[start..start + length]
-            })
-        })
+        self.map_authority(|authority| self.get_optional_slice(authority.port))
     }
     pub fn port(&self) -> Option<u16> {
         self.port_str()
@@ -67,32 +46,27 @@ impl Uri {
     }
 
     pub fn path(&self) -> &str {
-        let span = self.path;
-        let start = span.start();
-        let length = span.length();
-        &self.source[start..start + length]
+        self.get_slice(self.path)
     }
 
     pub fn query(&self) -> Option<&str> {
-        self.query.map(|span| {
-            let start = span.start();
-            let length = span.length();
-            &self.source[start..start + length]
-        })
+        self.get_optional_slice(self.query)
     }
 
     pub fn fragment(&self) -> Option<&str> {
-        self.fragment.map(|span| {
-            let start = span.start();
-            let length = span.length();
-            &self.source[start..start + length]
-        })
+        self.get_optional_slice(self.fragment)
     }
     fn map_authority<F, U>(&self, f: F) -> Option<U>
     where
         F: FnOnce(&Authority) -> Option<U>,
     {
         self.authority.as_ref().and_then(f)
+    }
+    fn get_optional_slice(&self, span: Option<Span>) -> Option<&str> {
+        span.map(|span| self.get_slice(span))
+    }
+    fn get_slice(&self, span: Span) -> &str {
+        &self.source[span.start()..span.end()]
     }
 }
 

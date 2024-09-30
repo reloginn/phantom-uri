@@ -14,6 +14,9 @@ impl Span {
     pub const fn length(&self) -> usize {
         self.length
     }
+    pub const fn end(&self) -> usize {
+        self.start() + self.length()
+    }
     pub fn add_to_length(&mut self, num: usize) {
         self.length += num
     }
