@@ -11,16 +11,16 @@ use crate::{
 use std::collections::VecDeque;
 
 pub struct UriParser {
-    input: String,
+    source: String,
     tokens: VecDeque<Token>,
 }
 
 impl UriParser {
-    pub fn new(input: &str) -> Result<Self, Unexpected> {
-        let input = input.to_owned();
-        let tokens = Lexer::new(&input).tokenize()?;
+    pub fn new(source: &str) -> Result<Self, Unexpected> {
+        let source = source.to_owned();
+        let tokens = Lexer::new(&source).tokenize()?;
         Ok(Self {
-            input,
+            source,
             tokens: tokens.into(),
         })
     }
@@ -37,7 +37,7 @@ impl UriParser {
         }
 
         Ok(Uri {
-            input: self.input,
+            source: self.source,
             scheme,
             authority,
             path,
@@ -54,11 +54,9 @@ impl UriParser {
         {
             if self.peek_next_token(TokenKind::Colon) {
                 let span = span.to_owned();
-                let start = span.start();
-                let length = span.length();
                 self.tokens.pop_front();
                 self.tokens.pop_front();
-                let scheme = &mut self.input[start..start + length];
+                let scheme = &mut self.source[span.start()..span.end()];
                 return if is_valid_scheme(scheme) {
                     Ok(Some(span))
                 } else {
@@ -68,7 +66,6 @@ impl UriParser {
         }
         Ok(None)
     }
-
     fn parse_authority(&mut self) -> Result<Option<Authority>, Error> {
         if self.peek_token(TokenKind::ForwardSlash) && self.peek_next_token(TokenKind::ForwardSlash)
         {
@@ -80,7 +77,6 @@ impl UriParser {
             let port = self.parse_port()?;
 
             Ok(Some(Authority {
-                input: self.input.to_owned(),
                 userinfo,
                 host,
                 port,
@@ -112,9 +108,7 @@ impl UriParser {
             ..
         }) = self.tokens.pop_front()
         {
-            let start = span.start();
-            let length = span.length();
-            let host = &mut self.input[start..start + length];
+            let host = &mut self.source[span.start()..span.end()];
             if is_valid_host(host) {
                 Ok(span)
             } else {
